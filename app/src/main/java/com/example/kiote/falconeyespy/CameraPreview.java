@@ -1,6 +1,7 @@
 package com.example.kiote.falconeyespy;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.hardware.Camera;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -33,32 +34,29 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        try {
-            if (null == mCamera) {
-                mCamera = getCameraInstance();
-            }
-            mCamera.setPreviewDisplay(holder);
-            mCamera.startPreview();
-        } catch (IOException e) {
-            Log.d("Camera", "Error setting camera preview: " + e.getMessage());
-        }
     }
 
     @Override
-    public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i2, int i3) {
-
-        if (mHolder.getSurface() == null) return;
-
-        mCamera.stopPreview();
+    public void surfaceChanged(SurfaceHolder holder, int i, int i2, int i3) {
         try {
-            mCamera.setPreviewDisplay(mHolder);
+            mCamera.setPreviewDisplay(holder);
+            Camera.Parameters parameters = mCamera.getParameters();
+            if (getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE) {
+                mCamera.setDisplayOrientation(90);
+            } else {
+                mCamera.setDisplayOrientation(180);
+            }
+
+            mCamera.setParameters(parameters);
             mCamera.startPreview();
         } catch (IOException e) {
-            Log.d("Camera", "Error setting camera preview: " + e.getMessage());
+            Log.d("myCamera", "Error setting camera preview: " + e.getMessage());
         }
     }
 
     public void surfaceDestroyed(SurfaceHolder holder) {
-        // empty. Take care of releasing the Camera preview in your activity.
+        mCamera.stopPreview();
+        mCamera.release();
+        mCamera = null;
     }
 }
