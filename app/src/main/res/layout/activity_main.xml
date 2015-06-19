@@ -8,13 +8,5 @@
         android:id="@+id/camera_preview"
         android:layout_width="match_parent"
         android:layout_height="fill_parent" >
-
-        <Button
-            android:id="@+id/button_capture"
-            android:text="Start Capture"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            />
     </FrameLayout>
 </LinearLayout>

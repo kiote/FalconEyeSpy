@@ -3,11 +3,19 @@ package com.example.kiote.falconeyespy;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.hardware.Camera;
+import android.os.Environment;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
     private SurfaceHolder mHolder;
@@ -49,6 +57,14 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
             mCamera.setParameters(parameters);
             mCamera.startPreview();
+            Timer timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    mCamera.startPreview();
+                    mCamera.takePicture(null, null, mPicture);
+                }
+            }, 0, 1000);
         } catch (IOException e) {
             Log.d("myCamera", "Error setting camera preview: " + e.getMessage());
         }
@@ -58,5 +74,45 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         mCamera.stopPreview();
         mCamera.release();
         mCamera = null;
+    }
+
+
+    Camera.PictureCallback mPicture = new Camera.PictureCallback() {
+        @Override
+        public void onPictureTaken(byte[] data, Camera camera) {
+            File pictureFile = getOutputMediaFile();
+            if (pictureFile == null) {
+                return;
+            }
+            try {
+                FileOutputStream fos = new FileOutputStream(pictureFile);
+                fos.write(data);
+                fos.close();
+            } catch (FileNotFoundException e) {
+
+            } catch (IOException e) {
+            }
+        }
+    };
+
+    private static File getOutputMediaFile() {
+        File mediaStorageDir = new File(
+                Environment
+                        .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                "MyCameraApp");
+        if (!mediaStorageDir.exists()) {
+            if (!mediaStorageDir.mkdirs()) {
+                Log.d("MyCameraApp", "failed to create directory");
+                return null;
+            }
+        }
+        // Create a media file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss")
+                .format(new Date());
+        File mediaFile;
+        mediaFile = new File(mediaStorageDir.getPath() + File.separator
+                + "IMG_" + timeStamp + ".jpg");
+
+        return mediaFile;
     }
 }
